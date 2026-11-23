@@ -1,0 +1,954 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QUANTEX – Institutional AI Trading Intelligence</title>
+    <!-- Google Fonts: Inter & JetBrains Mono -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <!-- Chart.js for auxiliary charts -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <link rel="stylesheet" href="/static/css/styles.css">
+</head>
+<body class="quantex-terminal">
+    <!-- Top Global Institutional Header -->
+    <header class="terminal-header">
+        <div class="header-left">
+            <div class="logo-group">
+                <div class="brand-mark">
+                    <span class="mark-letter">Q</span>
+                    <span class="pulse-dot"></span>
+                </div>
+                <div class="brand-text">
+                    <div class="brand-title">QUANTEX</div>
+                    <div class="brand-subtitle">AI TRADING INTELLIGENCE &bull; NSE/BSE</div>
+                </div>
+            </div>
+
+            <!-- Global Stock Search -->
+            <div class="search-container">
+                <span class="search-icon">⚲</span>
+                <input type="text" id="global-stock-search" placeholder="Search Indian Equities (e.g. RELIANCE, TCS, INFY)..." autocomplete="off">
+                <div id="search-dropdown" class="search-dropdown hidden"></div>
+            </div>
+        </div>
+
+        <!-- Ticker Tape / Market Status -->
+        <div class="market-status-badge" id="global-market-status">
+            <span class="status-indicator live"></span>
+            <span class="status-text" id="market-status-text">NSE FEED: DELAYED / SIMULATED</span>
+        </div>
+
+        <div class="header-right">
+            <!-- Voice Assistant Action -->
+            <button id="voice-trigger-btn" class="header-btn voice-btn" title="Click to speak a command (e.g. 'Analyse TCS')">
+                <span class="voice-wave-icon">🎙</span>
+                <span class="voice-btn-label">Voice Agent</span>
+                <span id="voice-status-indicator" class="voice-dot"></span>
+            </button>
+
+            <!-- Virtual Capital Pill -->
+            <div class="capital-pill">
+                <div class="capital-label">VIRTUAL CAPITAL</div>
+                <div class="capital-values">
+                    <span id="header-cash-val" class="cash-val font-mono">₹10,00,000</span>
+                    <span id="header-unrealized-pnl" class="pnl-val font-mono positive">+₹0.00</span>
+                </div>
+            </div>
+
+            <!-- AI Agent Toggle Button -->
+            <button id="agent-drawer-toggle" class="header-btn agent-toggle-btn">
+                <span class="btn-sparkle">✦</span>
+                <span>AI Terminal</span>
+                <span id="header-ai-mode-badge" class="badge" style="font-size: 0.65rem; padding: 2px 6px; margin-left: 4px;">LOCAL</span>
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Navigation Bar -->
+    <nav class="terminal-nav">
+        <ul class="nav-tabs" id="nav-tabs">
+            <li class="nav-item active" data-tab="tab-overview">Overview</li>
+            <li class="nav-item" data-tab="tab-markets">Markets</li>
+            <li class="nav-item" data-tab="tab-predictions">AI Predictions</li>
+            <li class="nav-item" data-tab="tab-analyst">AI Analyst</li>
+            <li class="nav-item" data-tab="tab-analytics">Analytics & Indicators</li>
+            <li class="nav-item" data-tab="tab-backtesting">Backtesting</li>
+            <li class="nav-item" data-tab="tab-paper-trading">Paper Trading</li>
+            <li class="nav-item" data-tab="tab-risk">Risk Management</li>
+            <li class="nav-item" data-tab="tab-settings">System & Settings</li>
+        </ul>
+        <div class="nav-meta">
+            <span class="market-date-badge font-mono" id="nav-market-date">DATE: --</span>
+        </div>
+    </nav>
+
+    <!-- Main Workspace Container -->
+    <main class="terminal-workspace">
+        
+        <!-- ==================== TAB 1: OVERVIEW ==================== -->
+        <section id="tab-overview" class="tab-pane active">
+            <!-- Ticker Banner -->
+            <div class="ticker-scroll-bar" id="ticker-scroll-bar">
+                <div class="ticker-inner" id="ticker-strip">
+                    <!-- Populated dynamically via JS -->
+                    <span class="ticker-item">Loading watchlist ticker feeds...</span>
+                </div>
+            </div>
+
+            <div class="overview-grid">
+                <!-- Left: Watchlist Panel -->
+                <aside class="panel watchlist-panel">
+                    <div class="panel-header">
+                        <span class="panel-title">INDIAN EQUITIES WATCHLIST</span>
+                        <span class="badge font-mono" id="watchlist-count">10 ASSETS</span>
+                    </div>
+                    <div class="panel-body no-padding">
+                        <div class="watchlist-table-wrapper">
+                            <table class="data-table" id="watchlist-table">
+                                <thead>
+                                    <tr>
+                                        <th>ASSET</th>
+                                        <th class="text-right">PRICE (₹)</th>
+                                        <th class="text-right">CHG %</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="watchlist-tbody">
+                                    <!-- Dynamic rows -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </aside>
+
+                <!-- Center: Main Financial Candlestick Chart -->
+                <section class="panel chart-panel">
+                    <div class="panel-header chart-panel-header">
+                        <div class="chart-asset-meta">
+                            <span class="asset-symbol" id="chart-symbol">RELIANCE.NS</span>
+                            <span class="asset-name" id="chart-name">Reliance Industries Ltd</span>
+                            <span class="asset-sector-tag" id="chart-sector">Energy</span>
+                            <span class="live-price font-mono" id="chart-current-price">₹2,980.50</span>
+                            <span class="price-change font-mono positive" id="chart-current-change">+₹15.20 (+0.51%)</span>
+                        </div>
+                        <div class="chart-controls">
+                            <div class="timeframe-selector" id="timeframe-selector">
+                                <button class="tf-btn" data-tf="1M">1M</button>
+                                <button class="tf-btn" data-tf="3M">3M</button>
+                                <button class="tf-btn" data-tf="6M">6M</button>
+                                <button class="tf-btn active" data-tf="1Y">1Y</button>
+                            </div>
+                            <div class="indicator-toggles">
+                                <label class="toggle-chip"><input type="checkbox" id="toggle-sma20" checked> SMA 20</label>
+                                <label class="toggle-chip"><input type="checkbox" id="toggle-sma50" checked> SMA 50</label>
+                                <label class="toggle-chip"><input type="checkbox" id="toggle-ema20"> EMA 20</label>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="panel-body chart-body">
+                        <!-- Custom Canvas Financial Candlestick & Volume Chart -->
+                        <div class="canvas-container" id="chart-canvas-container">
+                            <canvas id="main-candle-canvas"></canvas>
+                            <div class="chart-crosshair-tooltip hidden" id="chart-tooltip"></div>
+                        </div>
+                        <div class="chart-disclaimer font-mono" id="chart-data-disclaimer">
+                            STATUS: VERIFYING FEED SOURCE...
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Right: Quick Order & Intelligence Cards -->
+                <aside class="panel quick-side-panel">
+                    <!-- Quick Virtual Order Execution Widget -->
+                    <div class="sub-panel order-entry-widget">
+                        <div class="sub-header">
+                            <span>VIRTUAL ORDER TICKET</span>
+                            <span class="virtual-pill">SIMULATED</span>
+                        </div>
+                        <div class="order-form">
+                            <div class="form-row">
+                                <label>Target Asset</label>
+                                <input type="text" id="order-symbol" value="RELIANCE.NS" readonly class="font-mono">
+                            </div>
+                            <div class="form-row">
+                                <label>Order Side</label>
+                                <div class="side-selector">
+                                    <button class="side-btn buy active" id="btn-side-buy" data-side="BUY">BUY</button>
+                                    <button class="side-btn sell" id="btn-side-sell" data-side="SELL">SELL</button>
+                                </div>
+                            </div>
+                            <div class="form-row">
+                                <label>Shares Quantity</label>
+                                <input type="number" id="order-qty" min="1" value="10" class="font-mono">
+                            </div>
+                            <div class="order-summary-box font-mono">
+                                <div class="sum-row"><span>Est. Price:</span><span id="order-est-price">₹2,980.50</span></div>
+                                <div class="sum-row"><span>Fee (0.1%):</span><span id="order-est-fee">₹29.80</span></div>
+                                <div class="sum-row total"><span>Total Amount:</span><span id="order-est-total">₹29,834.80</span></div>
+                            </div>
+                            <button id="btn-execute-order" class="btn-primary-action buy">
+                                EXECUTE VIRTUAL BUY
+                            </button>
+                            <div id="order-feedback" class="order-feedback hidden"></div>
+                        </div>
+                    </div>
+
+                    <!-- AI Prediction & Technical Summary -->
+                    <div class="sub-panel ai-summary-widget">
+                        <div class="sub-header">
+                            <span>AI DIRECTIONAL MODEL</span>
+                            <span class="badge" id="summary-model-name">LOGISTIC REGRESSION</span>
+                        </div>
+                        <div class="direction-badge-container">
+                            <div class="direction-indicator" id="summary-direction-badge">
+                                <span class="dir-icon">▲</span>
+                                <span class="dir-text" id="summary-direction-text">BULLISH</span>
+                            </div>
+                            <div class="prob-box font-mono">
+                                <div class="prob-label">CONFIDENCE</div>
+                                <div class="prob-num" id="summary-prob-num">64.5%</div>
+                            </div>
+                        </div>
+                        <div class="metric-mini-grid font-mono">
+                            <div class="mini-metric">
+                                <span class="label">5D HORIZON</span>
+                                <span class="val" id="summary-horizon">5 Days</span>
+                            </div>
+                            <div class="mini-metric">
+                                <span class="label">RSI (14)</span>
+                                <span class="val" id="summary-rsi">52.4</span>
+                            </div>
+                            <div class="mini-metric">
+                                <span class="label">TECH BIAS</span>
+                                <span class="val positive" id="summary-bias">Bullish</span>
+                            </div>
+                            <div class="mini-metric">
+                                <span class="label">OUT-OF-SAMPLE ACC</span>
+                                <span class="val" id="summary-acc">61.2%</span>
+                            </div>
+                        </div>
+                        <button class="btn-secondary" id="btn-quick-analyst">Ask AI Analyst</button>
+                    </div>
+                </aside>
+            </div>
+        </section>
+
+        <!-- ==================== TAB 2: MARKETS ==================== -->
+        <section id="tab-markets" class="tab-pane">
+            <div class="panel">
+                <div class="panel-header">
+                    <div>
+                        <span class="panel-title">INDIAN EQUITIES COMPREHENSIVE OVERVIEW (NSE)</span>
+                        <span class="panel-desc">Institutional watchlist monitoring benchmark prices, volume distribution, and momentum indicators.</span>
+                    </div>
+                    <button class="btn-secondary refresh-btn" id="btn-refresh-markets">↻ Refresh Market Data</button>
+                </div>
+                <div class="panel-body no-padding">
+                    <div class="table-responsive">
+                        <table class="data-table full-table" id="markets-full-table">
+                            <thead>
+                                <tr>
+                                    <th>SYMBOL</th>
+                                    <th>NAME</th>
+                                    <th>SECTOR</th>
+                                    <th class="text-right">PRICE (₹)</th>
+                                    <th class="text-right">DAY CHANGE</th>
+                                    <th class="text-right">DAY HIGH</th>
+                                    <th class="text-right">DAY LOW</th>
+                                    <th class="text-right">VOLUME</th>
+                                    <th>DATA STATUS</th>
+                                    <th class="text-center">ACTION</th>
+                                </tr>
+                            </thead>
+                            <tbody id="markets-tbody">
+                                <!-- Populated dynamically -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ==================== TAB 3: AI PREDICTIONS ==================== -->
+        <section id="tab-predictions" class="tab-pane">
+            <div class="predictions-layout">
+                <div class="panel prediction-control-panel">
+                    <div class="panel-header">
+                        <span class="panel-title">MODEL CONFIGURATION & INFERENCE</span>
+                    </div>
+                    <div class="panel-body">
+                        <div class="config-group">
+                            <label>Selected Asset:</label>
+                            <select id="pred-symbol-select" class="terminal-select font-mono"></select>
+                        </div>
+                        <div class="config-group">
+                            <label>Machine Learning Algorithm:</label>
+                            <select id="pred-model-select" class="terminal-select">
+                                <option value="logistic_regression">Logistic Regression (L2 Regularized Baseline)</option>
+                                <option value="random_forest">Random Forest Classifier (Ensemble)</option>
+                            </select>
+                        </div>
+                        <div class="config-group">
+                            <label>Forecast Horizon:</label>
+                            <div class="horizon-pills">
+                                <button class="horizon-btn" data-horizon="3">3 Days</button>
+                                <button class="horizon-btn active" data-horizon="5">5 Days</button>
+                                <button class="horizon-btn" data-horizon="10">10 Days</button>
+                            </div>
+                        </div>
+                        <button class="btn-primary-action" id="btn-run-prediction">EXECUTE ML PREDICTION</button>
+
+                        <div class="ml-methodology-note">
+                            <div class="note-title">METHODOLOGICAL SAFEGUARDS</div>
+                            <p>• Strict chronological train/test split (80/20).</p>
+                            <p>• Zero future information leakage or look-ahead bias.</p>
+                            <p>• Engineered stationary features: return lags, MA divergences, RSI, ATR, and rolling volatility.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="panel prediction-result-panel">
+                    <div class="panel-header">
+                        <span class="panel-title">DIRECTIONAL PREDICTION OUTCOME</span>
+                        <span class="badge" id="pred-eval-status">STATUS: READY</span>
+                    </div>
+                    <div class="panel-body">
+                        <!-- Model Predictive Reliability Banner -->
+                        <div id="pred-reliability-box" class="pred-reliability-box">
+                            <div class="rel-head">
+                                <span class="rel-title">MODEL PREDICTIVE RELIABILITY:</span>
+                                <span class="badge" id="pred-reliability-badge">AUDITING...</span>
+                            </div>
+                            <div class="rel-msg" id="pred-reliability-msg">
+                                Evaluating out-of-sample test accuracy against naive majority baseline...
+                            </div>
+                        </div>
+
+                        <div class="pred-hero-card">
+                            <div class="hero-left">
+                                <div class="hero-target" id="pred-target-name">RELIANCE INDUSTRIES LTD</div>
+                                <div class="hero-symbol font-mono" id="pred-target-symbol">RELIANCE.NS &bull; Logistic Regression</div>
+                                <div class="hero-direction-wrap">
+                                    <div class="hero-badge bullish" id="pred-hero-badge">BULLISH</div>
+                                    <div class="hero-score-group font-mono">
+                                        <div class="hero-prob-text" id="pred-prob-text">Class Probability: P(Up) --% &bull; P(Down) --%</div>
+                                        <div class="hero-dir-score" id="pred-dir-score">Directional Score: --</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="hero-right font-mono">
+                                <div class="stat-box">
+                                    <span class="lbl">HORIZON</span>
+                                    <span class="val" id="pred-res-horizon">5 Trading Days</span>
+                                </div>
+                                <div class="stat-box">
+                                    <span class="lbl">LATEST PRICE</span>
+                                    <span class="val" id="pred-res-price">₹--</span>
+                                </div>
+                                <div class="stat-box">
+                                    <span class="lbl">MARKET DATE</span>
+                                    <span class="val" id="pred-res-date">--</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Out-of-Sample Metrics Grid -->
+                        <div class="metrics-grid">
+                            <div class="metric-card">
+                                <div class="m-label">OUT-OF-SAMPLE ACCURACY</div>
+                                <div class="m-val font-mono" id="pred-metric-acc">--%</div>
+                                <div class="m-sub" id="pred-metric-baseline">Baseline: --%</div>
+                            </div>
+                            <div class="metric-card">
+                                <div class="m-label">PRECISION</div>
+                                <div class="m-val font-mono" id="pred-metric-prec">--%</div>
+                                <div class="m-sub">TP / (TP + FP)</div>
+                            </div>
+                            <div class="metric-card">
+                                <div class="m-label">RECALL</div>
+                                <div class="m-val font-mono" id="pred-metric-rec">--%</div>
+                                <div class="m-sub">TP / (TP + FN)</div>
+                            </div>
+                            <div class="metric-card">
+                                <div class="m-label">F1-SCORE</div>
+                                <div class="m-val font-mono" id="pred-metric-f1">--%</div>
+                                <div class="m-sub">Harmonic mean P & R</div>
+                            </div>
+                        </div>
+
+                        <!-- Confusion Matrix & Chronological Partitions -->
+                        <div class="cm-and-partitions-grid">
+                            <div class="cm-box">
+                                <div class="box-title">CHRONOLOGICAL TEST CONFUSION MATRIX (<span id="cm-total-samples">N = --</span>)</div>
+                                <div class="cm-grid">
+                                    <div class="cm-cell">
+                                        <span class="cm-tag">True Negative (Bearish ✔)</span>
+                                        <span class="cm-num font-mono positive" id="cm-tn">--</span>
+                                    </div>
+                                    <div class="cm-cell">
+                                        <span class="cm-tag">False Positive (False Alarm ✘)</span>
+                                        <span class="cm-num font-mono negative" id="cm-fp">--</span>
+                                    </div>
+                                    <div class="cm-cell">
+                                        <span class="cm-tag">False Negative (Missed Rise ✘)</span>
+                                        <span class="cm-num font-mono negative" id="cm-fn">--</span>
+                                    </div>
+                                    <div class="cm-cell">
+                                        <span class="cm-tag">True Positive (Bullish ✔)</span>
+                                        <span class="cm-num font-mono positive" id="cm-tp">--</span>
+                                    </div>
+                                </div>
+                                <div class="cm-period font-mono" id="cm-period-text">Test Window: -- to -- (Strict Unseen Partition)</div>
+                            </div>
+
+                            <div class="model-comparison-box">
+                                <div class="box-title">IDENTICAL TEST SPLIT COMPARISON: LR VS RANDOM FOREST</div>
+                                <table class="data-table" id="pred-comparison-table">
+                                    <thead>
+                                        <tr>
+                                            <th>MODEL</th>
+                                            <th>PREDICTION</th>
+                                            <th class="text-right">P(BULLISH)</th>
+                                            <th class="text-right">TEST ACCURACY</th>
+                                            <th class="text-right">PRECISION</th>
+                                            <th class="text-right">F1</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="pred-comparison-tbody">
+                                        <!-- Dynamically generated rows -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <!-- Features Utilized -->
+                        <div class="features-used-box">
+                            <div class="box-title">ENGINEERED STATIONARY FEATURES (ZERO LOOK-AHEAD BIAS)</div>
+                            <div class="feature-tags" id="pred-feature-tags">
+                                <span class="tag">return_lag1</span>
+                                <span class="tag">return_lag5</span>
+                                <span class="tag">sma20_ratio</span>
+                                <span class="tag">sma50_ratio</span>
+                                <span class="tag">ema20_ratio</span>
+                                <span class="tag">rsi_14</span>
+                                <span class="tag">macd</span>
+                                <span class="tag">macd_hist</span>
+                                <span class="tag">atr_ratio</span>
+                                <span class="tag">hist_vol</span>
+                                <span class="tag">vol_ratio</span>
+                            </div>
+                        </div>
+
+                        <!-- Pedagogical Student Explanations -->
+                        <div class="student-guide-box">
+                            <div class="guide-header">
+                                <span class="guide-title">STUDENT QUANTITATIVE GUIDE: UNDERSTANDING ML METRICS</span>
+                                <span class="badge">ACADEMIC AUDIT</span>
+                            </div>
+                            <div class="guide-grid" id="student-guide-grid">
+                                <div class="guide-item">
+                                    <strong>Out-of-Sample Accuracy:</strong>
+                                    <span>Evaluated strictly on unseen future test bars ($t > t_{\text{split}}$). Unlike in-sample training accuracy, out-of-sample accuracy measures real generalization.</span>
+                                </div>
+                                <div class="guide-item">
+                                    <strong>Majority-Class Baseline:</strong>
+                                    <span>The accuracy achieved by naively predicting whichever class occurred most often in the training set. A model is only valuable if its test accuracy exceeds this threshold.</span>
+                                </div>
+                                <div class="guide-item">
+                                    <strong>Class Probability vs Accuracy:</strong>
+                                    <span>Class probability $P(\text{Up})$ is the model's internal score distribution on the latest bar. It is NOT a win rate guarantee and should never be confused with test accuracy.</span>
+                                </div>
+                                <div class="guide-item">
+                                    <strong>Chronological Splitting:</strong>
+                                    <span>Financial markets possess temporal autocorrelation. Shuffling or standard $k$-fold cross-validation causes future-to-past data leakage. We enforce strict chronological partitioning.</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="legal-disclaimer font-mono" id="pred-disclaimer-text">
+                            DISCLAIMER: Probabilistic mathematical model for academic evaluation. Past accuracy is no guarantee of future returns.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ==================== TAB 4: AI ANALYST ==================== -->
+        <section id="tab-analyst" class="tab-pane">
+            <div class="analyst-layout">
+                <div class="panel analyst-input-panel">
+                    <div class="panel-header">
+                        <span class="panel-title">QUANTITATIVE AI ANALYST (GOOGLE GEMINI)</span>
+                        <span class="badge" id="analyst-engine-badge">GEMINI ENABLED</span>
+                    </div>
+                    <div class="panel-body">
+                        <p class="analyst-intro">
+                            The QUANTEX AI Analyst ingests structured, verified market quotes, technical oscillators, and ML classification metrics 
+                            to produce a comprehensive institutional briefing. Never hallucinations—strictly factual quantitative commentary.
+                        </p>
+                        <div class="form-row">
+                            <label>Target Equity:</label>
+                            <select id="analyst-symbol-select" class="terminal-select font-mono"></select>
+                        </div>
+                        <button class="btn-primary-action" id="btn-generate-analyst-report">
+                            GENERATE INSTITUTIONAL BRIEFING
+                        </button>
+                    </div>
+                </div>
+
+                <div class="panel analyst-output-panel">
+                    <div class="panel-header">
+                        <span class="panel-title">RESEARCH MEMORANDUM</span>
+                        <button class="btn-secondary" id="btn-speak-analyst">🔊 Read Aloud</button>
+                    </div>
+                    <div class="panel-body">
+                        <div id="analyst-loading" class="loading-state hidden">
+                            <div class="spinner"></div>
+                            <p>Synthesizing verified market data with quantitative reasoning...</p>
+                        </div>
+                        <div id="analyst-content" class="markdown-body">
+                            <!-- Populated with Markdown response -->
+                            <p class="placeholder-text">Select an Indian equity and click 'Generate Institutional Briefing' to view deep-dive analysis.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ==================== TAB 5: ANALYTICS & INDICATORS ==================== -->
+        <section id="tab-analytics" class="tab-pane">
+            <div class="panel">
+                <div class="panel-header">
+                    <div>
+                        <span class="panel-title">INSTITUTIONAL TECHNICAL INDICATORS SUITE</span>
+                        <span class="panel-desc">Real-time mathematical computations based on actual historical OHLCV series.</span>
+                    </div>
+                    <div class="header-action-group">
+                        <select id="analytics-symbol-select" class="terminal-select font-mono"></select>
+                    </div>
+                </div>
+                <div class="panel-body">
+                    <!-- Indicators Grid -->
+                    <div class="indicators-grid" id="indicators-grid">
+                        <!-- Card 1: Trend Indicators -->
+                        <div class="indicator-card">
+                            <div class="ind-head">
+                                <span class="ind-title">TREND FOLLOWING (MA)</span>
+                                <span class="ind-badge positive" id="ind-trend-bias">BULLISH</span>
+                            </div>
+                            <div class="ind-val font-mono" id="ind-sma20-val">SMA 20: ₹--</div>
+                            <div class="ind-sub font-mono" id="ind-sma50-val">SMA 50: ₹--</div>
+                            <div class="ind-sub font-mono" id="ind-ema20-val">EMA 20: ₹--</div>
+                            <p class="ind-desc" id="ind-ma-desc">Evaluating moving average alignment...</p>
+                        </div>
+
+                        <!-- Card 2: RSI 14 -->
+                        <div class="indicator-card">
+                            <div class="ind-head">
+                                <span class="ind-title">RSI (14-PERIOD)</span>
+                                <span class="ind-badge" id="ind-rsi-badge">NEUTRAL</span>
+                            </div>
+                            <div class="ind-val font-mono" id="ind-rsi-val">--</div>
+                            <p class="ind-desc" id="ind-rsi-desc">Wilder's smoothed relative strength index.</p>
+                        </div>
+
+                        <!-- Card 3: MACD (12, 26, 9) -->
+                        <div class="indicator-card">
+                            <div class="ind-head">
+                                <span class="ind-title">MACD (12, 26, 9)</span>
+                                <span class="ind-badge" id="ind-macd-badge">CROSSOVER</span>
+                            </div>
+                            <div class="ind-val font-mono" id="ind-macd-val">MACD: --</div>
+                            <div class="ind-sub font-mono" id="ind-macd-sig">SIGNAL: --</div>
+                            <p class="ind-desc" id="ind-macd-desc">Moving average convergence divergence.</p>
+                        </div>
+
+                        <!-- Card 4: Bollinger Bands -->
+                        <div class="indicator-card">
+                            <div class="ind-head">
+                                <span class="ind-title">BOLLINGER BANDS (20, 2σ)</span>
+                                <span class="ind-badge">VOLATILITY</span>
+                            </div>
+                            <div class="ind-sub font-mono" id="ind-bb-upper">UPPER: ₹--</div>
+                            <div class="ind-sub font-mono" id="ind-bb-mid">MIDDLE: ₹--</div>
+                            <div class="ind-sub font-mono" id="ind-bb-lower">LOWER: ₹--</div>
+                            <p class="ind-desc" id="ind-bb-desc">Statistical envelope around 20-period moving average.</p>
+                        </div>
+
+                        <!-- Card 5: ATR (14) -->
+                        <div class="indicator-card">
+                            <div class="ind-head">
+                                <span class="ind-title">AVERAGE TRUE RANGE (ATR)</span>
+                                <span class="ind-badge">RANGE</span>
+                            </div>
+                            <div class="ind-val font-mono" id="ind-atr-val">₹--</div>
+                            <p class="ind-desc" id="ind-atr-desc">Average daily volatility in rupee terms.</p>
+                        </div>
+
+                        <!-- Card 6: Historical Volatility -->
+                        <div class="indicator-card">
+                            <div class="ind-head">
+                                <span class="ind-title">ANNUALIZED VOLATILITY</span>
+                                <span class="ind-badge">RISK</span>
+                            </div>
+                            <div class="ind-val font-mono" id="ind-vol-val">--%</div>
+                            <p class="ind-desc" id="ind-vol-desc">20-day rolling annualized standard deviation of log returns.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ==================== TAB 6: BACKTESTING ==================== -->
+        <section id="tab-backtesting" class="tab-pane">
+            <div class="backtest-layout">
+                <!-- Controls Panel -->
+                <div class="panel backtest-controls">
+                    <div class="panel-header">
+                        <span class="panel-title">STRATEGY PARAMETERS</span>
+                    </div>
+                    <div class="panel-body">
+                        <div class="form-row">
+                            <label>Asset to Backtest:</label>
+                            <select id="bt-symbol-select" class="terminal-select font-mono"></select>
+                        </div>
+                        <div class="form-row">
+                            <label>Fast SMA Period (Days):</label>
+                            <input type="number" id="bt-fast-period" value="20" min="5" max="100" class="font-mono">
+                        </div>
+                        <div class="form-row">
+                            <label>Slow SMA Period (Days):</label>
+                            <input type="number" id="bt-slow-period" value="50" min="20" max="200" class="font-mono">
+                        </div>
+                        <div class="form-row">
+                            <label>Initial Virtual Capital (₹):</label>
+                            <input type="number" id="bt-initial-capital" value="1000000" class="font-mono">
+                        </div>
+                        <button class="btn-primary-action" id="btn-run-backtest">RUN CHRONOLOGICAL SIMULATION</button>
+
+                        <div class="simulation-rules">
+                            <div class="rules-title">EXECUTION SPECIFICATIONS</div>
+                            <p>• Strict Next-Bar Execution: Buy/Sell signals generated on bar <em>t</em> execute on bar <em>t+1</em>.</p>
+                            <p>• Slippage: 0.05% modeled per trade.</p>
+                            <p>• Brokerage / Transaction Fee: 0.1% per trade.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Results & Performance Panel -->
+                <div class="panel backtest-results">
+                    <div class="panel-header">
+                        <span class="panel-title">SIMULATION PERFORMANCE METRICS</span>
+                        <span class="badge" id="bt-strategy-badge">SMA (20/50) CROSSOVER</span>
+                    </div>
+                    <div class="panel-body">
+                        <!-- Metrics Row -->
+                        <div class="metrics-grid">
+                            <div class="metric-card">
+                                <div class="m-label">STRATEGY TOTAL RETURN</div>
+                                <div class="m-val font-mono" id="bt-total-return">--%</div>
+                                <div class="m-sub" id="bt-bh-return">Buy & Hold: --%</div>
+                            </div>
+                            <div class="metric-card">
+                                <div class="m-label">CAGR</div>
+                                <div class="m-val font-mono" id="bt-cagr">--%</div>
+                                <div class="m-sub">Compound Annual Growth</div>
+                            </div>
+                            <div class="metric-card">
+                                <div class="m-label">MAXIMUM DRAWDOWN</div>
+                                <div class="m-val font-mono negative" id="bt-max-drawdown">--%</div>
+                                <div class="m-sub">Peak-to-trough decline</div>
+                            </div>
+                            <div class="metric-card">
+                                <div class="m-label">SHARPE RATIO</div>
+                                <div class="m-val font-mono" id="bt-sharpe">--</div>
+                                <div class="m-sub">Risk-free rate: 6.0%</div>
+                            </div>
+                            <div class="metric-card">
+                                <div class="m-label">WIN RATE</div>
+                                <div class="m-val font-mono" id="bt-win-rate">--%</div>
+                                <div class="m-sub" id="bt-trades-count">0 Trades</div>
+                            </div>
+                        </div>
+
+                        <!-- Equity Curve Canvas -->
+                        <div class="equity-chart-container">
+                            <div class="chart-subtitle">PORTFOLIO EQUITY CURVE VS BUY & HOLD BENCHMARK</div>
+                            <div style="height: 280px; position: relative;">
+                                <canvas id="bt-equity-canvas"></canvas>
+                            </div>
+                        </div>
+
+                        <!-- Recent Trades Table -->
+                        <div class="trades-table-container">
+                            <div class="table-title">CHRONOLOGICAL EXECUTED TRADES</div>
+                            <table class="data-table" id="bt-trades-table">
+                                <thead>
+                                    <tr>
+                                        <th>ENTRY DATE</th>
+                                        <th>EXIT DATE</th>
+                                        <th class="text-right">ENTRY (₹)</th>
+                                        <th class="text-right">EXIT (₹)</th>
+                                        <th class="text-right">SHARES</th>
+                                        <th class="text-right">NET P&L (₹)</th>
+                                        <th class="text-right">P&L %</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="bt-trades-tbody">
+                                    <tr><td colspan="7" class="text-center">Run backtest to view executed trade logs.</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ==================== TAB 7: PAPER TRADING ==================== -->
+        <section id="tab-paper-trading" class="tab-pane">
+            <div class="paper-trading-grid">
+                <!-- Portfolio Summary Cards -->
+                <div class="portfolio-stats-bar">
+                    <div class="stat-pill">
+                        <span class="p-lbl">TOTAL PORTFOLIO VALUE</span>
+                        <span class="p-val font-mono" id="pt-total-val">₹10,00,000.00</span>
+                    </div>
+                    <div class="stat-pill">
+                        <span class="p-lbl">AVAILABLE VIRTUAL CASH</span>
+                        <span class="p-val font-mono" id="pt-cash-val">₹10,00,000.00</span>
+                    </div>
+                    <div class="stat-pill">
+                        <span class="p-lbl">INVESTED EQUITY VALUE</span>
+                        <span class="p-val font-mono" id="pt-equity-val">₹0.00</span>
+                    </div>
+                    <div class="stat-pill">
+                        <span class="p-lbl">UNREALIZED P&L</span>
+                        <span class="p-val font-mono" id="pt-unrealized-pnl">₹0.00</span>
+                    </div>
+                    <div class="stat-pill">
+                        <span class="p-lbl">REALIZED P&L</span>
+                        <span class="p-val font-mono" id="pt-realized-pnl">₹0.00</span>
+                    </div>
+                    <button class="btn-danger-outline" id="btn-reset-portfolio">Reset to ₹10L</button>
+                </div>
+
+                <!-- Holdings Table -->
+                <div class="panel">
+                    <div class="panel-header">
+                        <span class="panel-title">CURRENT ACTIVE HOLDINGS</span>
+                        <span class="badge" id="pt-holdings-count">0 POSITIONS</span>
+                    </div>
+                    <div class="panel-body no-padding">
+                        <table class="data-table" id="pt-holdings-table">
+                            <thead>
+                                <tr>
+                                    <th>ASSET</th>
+                                    <th>NAME</th>
+                                    <th class="text-right">QTY</th>
+                                    <th class="text-right">AVG BUY PRICE (₹)</th>
+                                    <th class="text-right">CURRENT PRICE (₹)</th>
+                                    <th class="text-right">CURRENT VALUE (₹)</th>
+                                    <th class="text-right">UNREALIZED P&L (₹)</th>
+                                    <th class="text-right">ALLOCATION</th>
+                                    <th class="text-center">ACTION</th>
+                                </tr>
+                            </thead>
+                            <tbody id="pt-holdings-tbody">
+                                <tr><td colspan="9" class="text-center">No active positions. Place a virtual buy order to begin.</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Transaction Ledger -->
+                <div class="panel">
+                    <div class="panel-header">
+                        <span class="panel-title">VIRTUAL TRANSACTION LEDGER</span>
+                    </div>
+                    <div class="panel-body no-padding">
+                        <table class="data-table" id="pt-txns-table">
+                            <thead>
+                                <tr>
+                                    <th>TIME (UTC)</th>
+                                    <th>SYMBOL</th>
+                                    <th>SIDE</th>
+                                    <th class="text-right">QUANTITY</th>
+                                    <th class="text-right">EXEC PRICE (₹)</th>
+                                    <th class="text-right">FEES (₹)</th>
+                                    <th class="text-right">TOTAL AMOUNT (₹)</th>
+                                    <th class="text-right">REALIZED P&L (₹)</th>
+                                    <th>NOTES</th>
+                                </tr>
+                            </thead>
+                            <tbody id="pt-txns-tbody">
+                                <tr><td colspan="9" class="text-center">No transaction records found.</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ==================== TAB 8: RISK MANAGEMENT ==================== -->
+        <section id="tab-risk" class="tab-pane">
+            <div class="panel">
+                <div class="panel-header">
+                    <div>
+                        <span class="panel-title">INSTITUTIONAL RISK AUDIT & STRESS TESTING</span>
+                        <span class="panel-desc">Portfolio risk exposure, concentration risk (HHI), Value at Risk, and stop-loss impact scenarios.</span>
+                    </div>
+                    <span class="badge" id="risk-rating-badge">CONSERVATIVE</span>
+                </div>
+                <div class="panel-body">
+                    <!-- Top Risk Overview Cards -->
+                    <div class="metrics-grid">
+                        <div class="metric-card">
+                            <div class="m-label">RISK SCORE (0-100)</div>
+                            <div class="m-val font-mono" id="risk-score-num">--</div>
+                            <div class="m-sub" id="risk-score-rating">Low / Conservative</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="m-label">EQUITY EXPOSURE RATIO</div>
+                            <div class="m-val font-mono" id="risk-exposure-pct">--%</div>
+                            <div class="m-sub" id="risk-cash-pct">Cash: --%</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="m-label">CONCENTRATION (HHI INDEX)</div>
+                            <div class="m-val font-mono" id="risk-hhi-num">--</div>
+                            <div class="m-sub" id="risk-hhi-level">Well Diversified</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="m-label">1-DAY 95% PARAMETRIC VaR</div>
+                            <div class="m-val font-mono negative" id="risk-var-num">₹--</div>
+                            <div class="m-sub">Max expected loss at 95% conf.</div>
+                        </div>
+                    </div>
+
+                    <!-- Warning Notices -->
+                    <div class="risk-warnings-container" id="risk-warnings-list"></div>
+
+                    <!-- Stress Test Scenarios -->
+                    <div class="stress-test-section">
+                        <div class="section-heading">ADVERSE MARKET STRESS-TEST SCENARIOS</div>
+                        <div class="stress-grid">
+                            <div class="stress-card">
+                                <div class="s-title">SCENARIO: -2% MARKET GAP DOWN</div>
+                                <div class="s-loss font-mono" id="stress-2-loss">-₹0.00</div>
+                                <div class="s-res font-mono" id="stress-2-val">Projected Val: ₹--</div>
+                            </div>
+                            <div class="stress-card">
+                                <div class="s-title">SCENARIO: -5% SYSTEMIC SHOCK</div>
+                                <div class="s-loss font-mono" id="stress-5-loss">-₹0.00</div>
+                                <div class="s-res font-mono" id="stress-5-val">Projected Val: ₹--</div>
+                            </div>
+                            <div class="stress-card">
+                                <div class="s-title">SCENARIO: -10% BLACK SWAN EVENT</div>
+                                <div class="s-loss font-mono" id="stress-10-loss">-₹0.00</div>
+                                <div class="s-res font-mono" id="stress-10-val">Projected Val: ₹--</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ==================== TAB 9: SETTINGS ==================== -->
+        <section id="tab-settings" class="tab-pane">
+            <div class="panel">
+                <div class="panel-header">
+                    <span class="panel-title">SYSTEM ARCHITECTURE & CONFIGURATION</span>
+                </div>
+                <div class="panel-body">
+                    <div class="settings-grid">
+                        <div class="settings-card">
+                            <div class="c-title">BACKEND SYSTEM STATUS</div>
+                            <div class="c-item"><span>Platform Version:</span><span class="font-mono">QUANTEX v2.0 Enterprise</span></div>
+                            <div class="c-item"><span>Flask Runtime:</span><span class="font-mono">Python 3.14 / Werkzeug</span></div>
+                            <div class="c-item"><span>Database:</span><span class="font-mono">SQLite (Thread-safe connection pool)</span></div>
+                            <div class="c-item"><span>Database Status:</span><span class="badge positive">ONLINE</span></div>
+                        </div>
+                        <div class="settings-card">
+                            <div class="c-title">ARTIFICIAL INTELLIGENCE STATUS</div>
+                            <div class="c-item"><span>Configured Model:</span><span class="font-mono" id="settings-gemini-model">gemini-2.5-flash</span></div>
+                            <div class="c-item"><span>Active Engine:</span><span class="font-mono" id="settings-active-engine">QUANTEX Local Rule Engine</span></div>
+                            <div class="c-item"><span>Gemini API Status:</span><span class="badge" id="settings-gemini-status">CHECKING...</span></div>
+                            <div class="c-item"><span>AI Mode:</span><span class="badge" id="settings-engine-mode">LOCAL QUANT ENGINE</span></div>
+                            <div class="c-item"><span>AI Agent Architecture:</span><span class="font-mono">PLAN → ACT → OBSERVE → RESPOND</span></div>
+                        </div>
+                        <div class="settings-card">
+                            <div class="c-title">MARKET DATA SETTINGS</div>
+                            <div class="c-item"><span>Primary Source:</span><span class="font-mono">Yahoo Finance (yfinance)</span></div>
+                            <div class="c-item"><span>Cache TTL:</span><span class="font-mono">300 seconds (5 mins)</span></div>
+                            <div class="c-item"><span>Exchange Coverage:</span><span class="font-mono">National Stock Exchange (NSE)</span></div>
+                            <div class="c-item"><span>Fallback Generator:</span><span class="font-mono">Geometric Brownian Motion</span></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- ==================== PERSISTENT AI AGENT DRAWER / TERMINAL ==================== -->
+    <div id="agent-drawer" class="agent-drawer closed">
+        <div class="drawer-header">
+            <div class="drawer-title">
+                <span class="drawer-sparkle">✦</span>
+                <span>QUANTEX AUTONOMOUS AI AGENT</span>
+                <span id="drawer-ai-mode-badge" class="badge" style="font-size: 0.65rem; margin-left: 8px;">LOCAL ENGINE</span>
+            </div>
+            <button id="agent-drawer-close" class="drawer-close-btn">&times;</button>
+        </div>
+
+        <!-- Cognitive Loop Progress Indicator -->
+        <div class="pipeline-progress-bar">
+            <div class="step-badge" id="step-badge-plan">PLAN</div>
+            <span class="step-arrow">→</span>
+            <div class="step-badge" id="step-badge-act">ACT</div>
+            <span class="step-arrow">→</span>
+            <div class="step-badge" id="step-badge-observe">OBSERVE</div>
+            <span class="step-arrow">→</span>
+            <div class="step-badge" id="step-badge-respond">RESPOND</div>
+        </div>
+
+        <!-- Chat / Agent Execution Output Stream -->
+        <div class="drawer-body" id="agent-chat-stream">
+            <div class="agent-msg system-msg">
+                <div class="msg-header font-mono">QUANTEX TERMINAL READY</div>
+                <div class="msg-content">
+                    Ask any question, run predictions, compare stocks, or backtest strategies.
+                    You can type below or click the 🎙 Voice Agent button in the header.
+                </div>
+            </div>
+        </div>
+
+        <!-- Suggested Prompt Chips -->
+        <div class="prompt-chips-bar" id="prompt-chips">
+            <button class="chip" data-cmd="Analyse RELIANCE">Analyse RELIANCE</button>
+            <button class="chip" data-cmd="Predict TCS for the next trading period">Predict TCS</button>
+            <button class="chip" data-cmd="Explain the RSI of INFY">Explain RSI INFY</button>
+            <button class="chip" data-cmd="Compare TCS and INFY">Compare TCS vs INFY</button>
+            <button class="chip" data-cmd="Backtest the moving average strategy">Backtest Strategy</button>
+            <button class="chip" data-cmd="Show my paper trading portfolio">My Portfolio</button>
+            <button class="chip" data-cmd="Calculate my portfolio risk">Portfolio Risk</button>
+        </div>
+
+        <!-- Drawer Input Footer -->
+        <div class="drawer-footer">
+            <div class="input-wrap">
+                <input type="text" id="agent-input-field" placeholder="Instruct AI Agent (e.g. 'Analyse RELIANCE')...">
+                <button id="agent-voice-btn" class="inner-voice-btn" title="Voice Input">🎙</button>
+                <button id="agent-send-btn" class="send-btn">➤</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="/static/js/api.js"></script>
+    <script src="/static/js/charts.js"></script>
+    <script src="/static/js/voice.js"></script>
+    <script src="/static/js/agent_ui.js"></script>
+    <script src="/static/js/app.js"></script>
+</body>
+</html>
